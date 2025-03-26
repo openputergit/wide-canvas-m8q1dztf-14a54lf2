@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Todo List</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #e5e7eb;
+        }
+        .todo-item {
+            transition: all 0.3s ease;
+        }
+        .todo-item.completed {
+            opacity: 0.6;
+            text-decoration: line-through;
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-8">
+    <div class="max-w-2xl mx-auto bg-white rounded-xl shadow-lg p-6">
+        <h1 class="text-3xl font-bold text-center mb-8 text-gray-800">My Todo List</h1>
+        
+        <div class="flex gap-2 mb-6">
+            <input type="text" id="todoInput" placeholder="Add a new task..." 
+                class="flex-1 p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
+            <button onclick="addTodo()" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg transition-colors">
+                <i class="bi bi-plus-lg"></i> Add
+            </button>
+        </div>
+
+        <div id="todoList" class="space-y-3">
+            <!-- Todo items will be added here -->
+        </div>
+
+        <div class="mt-6 flex justify-between items-center text-sm text-gray-600">
+            <span id="taskCount">0 tasks remaining</span>
+            <button onclick="clearCompleted()" class="text-red-500 hover:text-red-600 transition-colors">
+                Clear Completed
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let todos = JSON.parse(localStorage.getItem('todos')) || [];
+
+        function updateLocalStorage() {
+            localStorage.setItem('todos', JSON.stringify(todos));
+        }
+
+        function renderTodos() {
+            const todoList = document.getElementById('todoList');
+            todoList.innerHTML = '';
+            
+            todos.forEach((todo, index) => {
+                const todoItem = document.createElement('div');
+                todoItem.className = `todo-item flex items-center gap-3 p-3 bg-gray-50 rounded-lg ${todo.completed ? 'completed' : ''}`;
+                
+                todoItem.innerHTML = `
+                    <input type="checkbox" ${todo.completed ? 'checked' : ''} 
+                        class="w-5 h-5 cursor-pointer"
+                        onchange="toggleTodo(${index})">
+                    <span class="flex-1">${todo.text}</span>
+                    <button onclick="deleteTodo(${index})" 
+                        class="text-red-500 hover:text-red-600">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                `;
+                
+                todoList.appendChild(todoItem);
+            });
+
+            updateTaskCount();
+        }
+
+        function addTodo() {
+            const input = document.getElementById('todoInput');
+            const text = input.value.trim();
+            
+            if (text) {
+                todos.push({ text, completed: false });
+                input.value = '';
+                updateLocalStorage();
+                renderTodos();
+            }
+        }
+
+        function toggleTodo(index) {
+            todos[index].completed = !todos[index].completed;
+            updateLocalStorage();
+            renderTodos();
+        }
+
+        function deleteTodo(index) {
+            todos.splice(index, 1);
+            updateLocalStorage();
+            renderTodos();
+        }
+
+        function clearCompleted() {
+            todos = todos.filter(todo => !todo.completed);
+            updateLocalStorage();
+            renderTodos();
+        }
+
+        function updateTaskCount() {
+            const remaining = todos.filter(todo => !todo.completed).length;
+            document.getElementById('taskCount').textContent = `${remaining} task${remaining === 1 ? '' : 's'} remaining`;
+        }
+
+        // Event listener for Enter key
+        document.getElementById('todoInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                addTodo();
+            }
+        });
+
+        // Initial render
+        renderTodos();
+    </script>
+<script>document.body.addEventListener('wheel', e => { if (!e.ctrlKey) return; e.preventDefault(); return }, { passive: false })</script>
+	</body>
+</html>
